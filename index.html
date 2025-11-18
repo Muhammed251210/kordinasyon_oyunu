@@ -63,6 +63,32 @@
             text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
+        /* --- TAM EKRAN BUTONU --- */
+        #fullscreenBtn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            transition: background 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        
+        #fullscreenBtn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         /* --- YENİ MOBİL KONTROLLER (Sadece Yatay) --- */
         #mobileControls {
             position: absolute;
@@ -181,6 +207,9 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="divider"></div>
         
+        <!-- Tam Ekran Butonu -->
+        <button id="fullscreenBtn" title="Tam Ekran">⛶</button>
+        
         <div id="uiLayer">
             <div id="scoreDisplay">0</div>
         </div>
@@ -233,6 +262,7 @@
         const gameOverScreen = document.getElementById('gameOverScreen');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const finalScoreEl = document.getElementById('finalScore');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
         
         // Oyun Durumu
         let isPlaying = false;
@@ -258,6 +288,17 @@
         let particles = [];
 
         // --- KONTROL TANIMLAMALARI ---
+
+        // Tam Ekran Fonksiyonu
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Hata: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
 
         // Klavye
         window.addEventListener('keydown', (e) => {
