@@ -30,6 +30,20 @@
             justify-content: center;
             align-items: center;
             background: #000;
+            transition: all 0.3s ease; /* Geçiş animasyonu */
+        }
+
+        /* CSS Fallback için Sahte Tam Ekran Sınıfı */
+        .pseudo-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            background: #000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         canvas {
@@ -348,6 +362,7 @@
         let speed = 5;
         let animationId;
         let frames = 0;
+        let isPseudoFullscreen = false;
         
         // Renk Seçimi
         let selectedColorIndex = 0;
@@ -833,14 +848,22 @@
 
         pauseBtn.addEventListener('click', togglePause);
         
-        // Tam Ekran (Container'ı tam ekran yapar)
+        // Tam Ekran İşlevi - Fallback Dahil
         document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            if (!document.fullscreenElement) {
+            if (!document.fullscreenElement && !isPseudoFullscreen) {
                 gameContainer.requestFullscreen().catch(err => {
-                    console.error(`Tam ekran hatası: ${err.message}`);
+                    // Fallback: Pseudo Fullscreen
+                    console.log("Native fullscreen blocked, switching to CSS fullscreen.");
+                    gameContainer.classList.add('pseudo-fullscreen');
+                    isPseudoFullscreen = true;
+                    resizeCanvas();
                 });
-            } else {
+            } else if (document.fullscreenElement) {
                 document.exitFullscreen();
+            } else if (isPseudoFullscreen) {
+                gameContainer.classList.remove('pseudo-fullscreen');
+                isPseudoFullscreen = false;
+                resizeCanvas();
             }
         });
 
