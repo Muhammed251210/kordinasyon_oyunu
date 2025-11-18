@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nöro Senkron - TV Modu</title>
     <style>
+        /* HTML ve BODY'ye tam kontrol ekleyerek taşmayı engelle */
+        html {
+            overflow: hidden;
+            height: 100%;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -30,20 +36,22 @@
             justify-content: center;
             align-items: center;
             background: #000;
-            transition: all 0.3s ease; /* Geçiş animasyonu */
         }
 
-        /* CSS Fallback için Sahte Tam Ekran Sınıfı */
+        /* CSS Fallback için Sahte Tam Ekran Sınıfı (Daha Güçlü) */
         .pseudo-fullscreen {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
-            z-index: 9999 !important;
+            z-index: 99999 !important;
             background: #000 !important;
             margin: 0 !important;
             padding: 0 !important;
+            border: none !important;
         }
 
         canvas {
@@ -547,6 +555,12 @@
             colorScreen.classList.add('hidden');
             modeScreen.classList.remove('hidden');
             divider.style.opacity = '1';
+            // Sahte tam ekrandan da çık
+            if(isPseudoFullscreen) {
+                gameContainer.classList.remove('pseudo-fullscreen');
+                isPseudoFullscreen = false;
+                resizeCanvas();
+            }
         }
 
         // --- OYUN ---
@@ -848,26 +862,63 @@
 
         pauseBtn.addEventListener('click', togglePause);
         
-        // Tam Ekran İşlevi - Fallback Dahil
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            if (!document.fullscreenElement && !isPseudoFullscreen) {
-                gameContainer.requestFullscreen().catch(err => {
-                    // Fallback: Pseudo Fullscreen
-                    console.log("Native fullscreen blocked, switching to CSS fullscreen.");
+        // GÜÇLENDİRİLMİŞ TAM EKRAN MANTIĞI
+        // 1. Önce standart yöntemi dener (Vendor Prefix'ler ile)
+        // 2. Başarısız olursa (örn. iframe kısıtlaması), "Pseudo Fullscreen" (CSS) moduna geçer
+        
+        const toggleFullscreen = () => {
+            // Çıkış Denemeleri (Tüm Tarayıcılar)
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                return;
+            }
+
+            // Pseudo moddan çıkış (CSS Fallback)
+            if (isPseudoFullscreen) {
+                gameContainer.classList.remove('pseudo-fullscreen');
+                isPseudoFullscreen = false;
+                resizeCanvas();
+                return;
+            }
+
+            // Native fullscreen dene (Gerçek tam ekran)
+            const requestMethod = gameContainer.requestFullscreen ||
+                                  gameContainer.mozRequestFullScreen || 
+                                  gameContainer.webkitRequestFullscreen || 
+                                  gameContainer.msRequestFullscreen;
+
+            if (requestMethod) {
+                requestMethod.call(gameContainer).then(() => {
+                    // Başarılı
+                }).catch(err => {
+                    console.warn("Native fullscreen blocked, switching to pseudo mode.", err);
+                    // Fallback: CSS ile tam ekran
                     gameContainer.classList.add('pseudo-fullscreen');
                     isPseudoFullscreen = true;
                     resizeCanvas();
                 });
-            } else if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else if (isPseudoFullscreen) {
+            } else {
+                // Tarayıcı desteklemiyorsa bile CSS Fallback
+                gameContainer.classList.add('pseudo-fullscreen');
+                isPseudoFullscreen = true;
+                resizeCanvas();
+            }
+        };
+        
+        document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+
+        window.addEventListener('keydown', (e) => {
+            // ESC ile pseudo fullscreen'den çık
+            if (e.key === 'Escape' && (isPseudoFullscreen || document.fullscreenElement)) {
+                // ESC tuşuna basıldığında pseudo fullscreen modundan çıkılır.
                 gameContainer.classList.remove('pseudo-fullscreen');
                 isPseudoFullscreen = false;
                 resizeCanvas();
+                return;
             }
-        });
 
-        window.addEventListener('keydown', (e) => {
             // MOD SEÇİMİ (1, 2 ve Numpad Tuşları)
             if (!modeScreen.classList.contains('hidden')) {
                 if (e.key === '1' || e.code === 'Numpad1' || e.code === 'Digit1') selectMode(1);
