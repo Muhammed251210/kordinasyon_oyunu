@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nöro Senkron - Yatay Mod</title>
+    <title>Nöro Senkron - Taktiksel Mod</title>
     <style>
         body {
             margin: 0;
@@ -63,37 +63,10 @@
             text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
-        /* --- TAM EKRAN BUTONU --- */
-        #fullscreenBtn {
+        /* --- BUTONLAR --- */
+        #fullscreenBtn, #pauseBtn {
             position: absolute;
             top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 50;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-            transition: background 0.2s;
-            backdrop-filter: blur(4px);
-        }
-        
-        #fullscreenBtn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* --- DURDURMA BUTONU (SOL ÜST) --- */
-        #pauseBtn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
@@ -110,10 +83,11 @@
             transition: background 0.2s;
             backdrop-filter: blur(4px);
         }
-
-        #pauseBtn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
+        
+        #fullscreenBtn { right: 15px; font-size: 24px; }
+        #pauseBtn { left: 15px; }
+        
+        #fullscreenBtn:hover, #pauseBtn:hover { background: rgba(255, 255, 255, 0.3); }
 
         /* --- MOBİL KONTROLLER --- */
         #mobileControls {
@@ -132,20 +106,21 @@
 
         .control-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             pointer-events: auto;
+            align-items: flex-end;
         }
 
         .btn {
-            width: 70px;
-            height: 70px;
+            width: 65px;
+            height: 65px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 30px;
+            font-size: 24px;
             color: white;
             cursor: pointer;
             backdrop-filter: blur(4px);
@@ -153,14 +128,13 @@
             touch-action: none;
         }
 
-        .btn:active, .btn.active {
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(0.95);
-        }
+        .btn-fire { border-width: 3px; font-weight: bold; font-size: 20px; }
+        .btn:active, .btn.active { background: rgba(255, 255, 255, 0.4); transform: scale(0.95); }
 
-        /* Renk Kodları */
         .left-group .btn { border-color: #00ffff; color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); }
+        .left-group .btn-fire { background: rgba(0, 255, 255, 0.15); }
         .right-group .btn { border-color: #ff00ff; color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.1); }
+        .right-group .btn-fire { background: rgba(255, 0, 255, 0.15); }
 
         #startScreen, #gameOverScreen {
             position: absolute;
@@ -190,16 +164,32 @@
 
         .key-hint {
             display: flex;
-            gap: 30px;
+            gap: 20px;
             margin: 20px 0;
             color: #ccc;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         .key-box {
             border: 1px solid #555;
-            padding: 10px 20px;
+            padding: 10px;
+            border-radius: 8px;
+            min-width: 120px;
+        }
+        .key-row { display: block; font-size: 1.1em; margin-bottom: 2px; }
+        .key-action { font-size: 0.75em; color: #aaa; text-transform: uppercase;}
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
             border-radius: 8px;
         }
-        .key-box b { display: block; font-size: 1.5em; margin-bottom: 5px;}
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-box { width: 15px; height: 15px; border: 2px solid #fff; }
 
         button.main-btn {
             padding: 15px 40px;
@@ -240,48 +230,58 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="divider"></div>
         
-        <!-- Tam Ekran Butonu -->
         <button id="fullscreenBtn" title="Tam Ekran">⛶</button>
-        <!-- Durdur Butonu -->
         <button id="pauseBtn" title="Durdur/Devam Et">❚❚</button>
         
         <div id="uiLayer">
             <div id="scoreDisplay">0</div>
         </div>
 
-        <!-- Mobil Kontroller (Yatay Sadece) -->
         <div id="mobileControls">
-            <!-- Sol El (Z / C) -->
+            <!-- Sol El -->
             <div class="control-group left-group">
-                <div class="btn" data-key="z">◀</div> <!-- Sol -->
-                <div class="btn" data-key="c">▶</div> <!-- Sağ -->
+                <div class="btn" data-key="z">◀</div>
+                <div class="btn btn-fire" data-key="x">X</div>
+                <div class="btn" data-key="c">▶</div>
             </div>
-
-            <!-- Sağ El (Oklar) -->
+            <!-- Sağ El -->
             <div class="control-group right-group">
                 <div class="btn" data-key="ArrowLeft">◀</div>
+                <div class="btn btn-fire" data-key="ArrowDown">▼</div>
                 <div class="btn" data-key="ArrowRight">▶</div>
             </div>
         </div>
 
-        <!-- Başlangıç Ekranı -->
         <div id="startScreen">
-            <h1>Nöro Senkron</h1>
-            <div class="key-hint">
-                <div class="key-box" style="border-color: #00ffff; color: #00ffff;">
-                    <b>Z & C</b>
-                    Sol Taraf
+            <h1>Nöro Taktik</h1>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="border-color: #00ffff; background: #005555;"></div>
+                    <span>Vur & Yok Et</span>
                 </div>
-                <div class="key-box" style="border-color: #ff00ff; color: #ff00ff;">
-                    <b>← & →</b>
-                    Sağ Taraf
+                <div class="legend-item">
+                    <div class="legend-box" style="border-color: #888; background: #333;"></div>
+                    <span>ZIRHLI (Sadece Kaç!)</span>
                 </div>
             </div>
-            <p style="color:#888; font-size:0.9em;">Mobilde ekrandaki butonları kullan</p>
+
+            <div class="key-hint">
+                <div class="key-box" style="border-color: #00ffff; color: #00ffff;">
+                    <div class="key-row">Z - C</div>
+                    <div class="key-action">Hareket</div>
+                    <div class="key-row" style="margin-top:5px; font-weight:bold;">X</div>
+                    <div class="key-action">Ateş</div>
+                </div>
+                <div class="key-box" style="border-color: #ff00ff; color: #ff00ff;">
+                    <div class="key-row">← - →</div>
+                    <div class="key-action">Hareket</div>
+                    <div class="key-row" style="margin-top:5px; font-weight:bold;">↓</div>
+                    <div class="key-action">Ateş</div>
+                </div>
+            </div>
             <button class="main-btn" id="startBtn">BAŞLA</button>
         </div>
 
-        <!-- Oyun Sonu Ekranı -->
         <div id="gameOverScreen" class="hidden">
             <h1 style="font-size: 2rem; -webkit-text-fill-color: white;">OYUN BİTTİ</h1>
             <p>Skor: <span id="finalScore" style="color: yellow;">0</span></p>
@@ -301,7 +301,6 @@
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         
-        // Oyun Durumu
         let isPlaying = false;
         let isPaused = false;
         let score = 0;
@@ -309,83 +308,94 @@
         let animationId;
         let frames = 0;
 
-        // Ses Bağlamı (Web Audio API)
+        // Web Audio API
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
-        // ASMR Mekanik Tuş Sesi (Tok ve tatmin edici)
+        // Sesler
         function playClickSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const t = audioCtx.currentTime;
-
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-
-            // Üçgen dalga daha "tok" bir ses verir
             osc.type = 'triangle';
-            
-            // Pitch düşüşü (Mekanik switch hissi)
             osc.frequency.setValueAtTime(600, t); 
             osc.frequency.exponentialRampToValueAtTime(100, t + 0.08);
-
-            // Ses zarfı (Kısa ve net)
             gain.gain.setValueAtTime(0.3, t);
             gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-
             osc.start(t);
             osc.stop(t + 0.08);
         }
 
-        // Tuş Durumları
+        function playShootSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, t);
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            osc.start(t);
+            osc.stop(t + 0.15);
+        }
+
+        function playArmorHitSound() { // Zırha çarpma sesi (metalik)
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.start(t);
+            osc.stop(t + 0.1);
+        }
+
         const keys = {
-            z: false, c: false, // Sol Taraf
-            ArrowLeft: false, ArrowRight: false // Sağ Taraf
+            z: false, c: false, x: false,
+            ArrowLeft: false, ArrowRight: false, ArrowDown: false
         };
 
-        // Oyuncular (Y pozisyonu sabitlendi)
         const playerSize = 30;
-        const fixedY = 500; // Oyuncuların sabit yüksekliği
+        const fixedY = 500; 
         
-        const player1 = { x: 200, y: fixedY, color: '#00ffff', trail: [] };
-        const player2 = { x: 600, y: fixedY, color: '#ff00ff', trail: [] };
+        const player1 = { x: 200, y: fixedY, color: '#00ffff', trail: [], lastShot: 0 };
+        const player2 = { x: 600, y: fixedY, color: '#ff00ff', trail: [], lastShot: 0 };
 
         let obstacles = [];
         let particles = [];
+        let bullets = [];
 
-        // --- KONTROL TANIMLAMALARI ---
-
-        // Tam Ekran Fonksiyonu
+        // --- KONTROLLER ---
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Hata: ${err.message}`);
-                });
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
             } else {
                 document.exitFullscreen();
             }
         });
 
-        // Durdurma (Pause) Fonksiyonu
         pauseBtn.addEventListener('click', togglePause);
 
         function togglePause() {
-            if (!isPlaying && !isPaused) return; // Oyun hiç başlamadıysa çalışma
-
+            if (!isPlaying && !isPaused) return;
             isPaused = !isPaused;
-
             if (isPaused) {
-                // Oyunu Durdur
                 cancelAnimationFrame(animationId);
-                pauseBtn.innerText = '▶'; // Oynat ikonu
-                
-                // Ekrana Duraklatıldı Yazısı Bas
+                pauseBtn.innerText = '▶';
                 ctx.save();
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
                 ctx.fillStyle = '#fff';
                 ctx.font = '900 60px Segoe UI';
                 ctx.textAlign = 'center';
@@ -393,98 +403,88 @@
                 ctx.shadowColor = '#00d2ff';
                 ctx.shadowBlur = 20;
                 ctx.fillText('DURAKLATILDI', canvas.width/2, canvas.height/2);
-                
-                // Alt bilgi
                 ctx.font = '20px Segoe UI';
                 ctx.fillStyle = '#ccc';
                 ctx.shadowBlur = 0;
                 ctx.fillText("Devam etmek için 'S' veya 'Yukarı Ok' bas", canvas.width/2, canvas.height/2 + 50);
-                
                 ctx.restore();
             } else {
-                // Oyuna Devam Et
-                pauseBtn.innerText = '❚❚'; // Durdur ikonu
+                pauseBtn.innerText = '❚❚';
                 animate();
             }
         }
 
-        // Klavye
         window.addEventListener('keydown', (e) => {
-            // ENTER ile Restart kontrolü
-            if (e.key === 'Enter' && !isPlaying) {
-                startGame();
-                return;
-            }
+            if (e.key === 'Enter' && !isPlaying) { startGame(); return; }
+            if ((e.key.toLowerCase() === 's' || e.key === 'ArrowUp') && (isPlaying || isPaused)) { togglePause(); return; }
 
-            // 's' veya 'ArrowUp' ile Durdurma (Pause)
-            if (e.key.toLowerCase() === 's' || e.key === 'ArrowUp') {
-                togglePause();
-                return;
-            }
+            const k = e.key.toLowerCase();
+            let keyMap = null;
+            if (k === 'z') keyMap = 'z';
+            else if (k === 'c') keyMap = 'c';
+            else if (k === 'x') keyMap = 'x';
+            else if (k === 'arrowleft') keyMap = 'ArrowLeft';
+            else if (k === 'arrowright') keyMap = 'ArrowRight';
+            else if (k === 'arrowdown') keyMap = 'ArrowDown';
 
-            const k = e.key.toLowerCase() === 'z' ? 'z' : (e.key.toLowerCase() === 'c' ? 'c' : e.key);
-            
-            if(keys.hasOwnProperty(k)) {
-                // Sadece tuşa ilk basışta ses çal (basılı tutunca tekrarlamasın)
-                if (!keys[k] && isPlaying && !isPaused) {
+            if(keyMap) {
+                if (!keys[keyMap] && isPlaying && !isPaused) {
                     playClickSound();
                 }
-                keys[k] = true;
+                keys[keyMap] = true;
             }
         });
 
         window.addEventListener('keyup', (e) => {
-            const k = e.key.toLowerCase() === 'z' ? 'z' : (e.key.toLowerCase() === 'c' ? 'c' : e.key);
-            if(keys.hasOwnProperty(k)) keys[k] = false;
+            const k = e.key.toLowerCase();
+            if (k === 'z') keys.z = false;
+            else if (k === 'c') keys.c = false;
+            else if (k === 'x') keys.x = false;
+            else if (k === 'arrowleft') keys.ArrowLeft = false;
+            else if (k === 'arrowright') keys.ArrowRight = false;
+            else if (k === 'arrowdown') keys.ArrowDown = false;
         });
 
-        // Mobil Butonlar
         const touchButtons = document.querySelectorAll('.btn');
         touchButtons.forEach(btn => {
             const key = btn.dataset.key;
-            
             const activate = (e) => {
                 e.preventDefault();
-                if (isPlaying) playClickSound(); // Mobilde de ses çal
+                if (isPlaying && !isPaused) playClickSound();
                 keys[key] = true;
                 btn.classList.add('active');
             };
-            
             const deactivate = (e) => {
                 e.preventDefault();
                 keys[key] = false;
                 btn.classList.remove('active');
             };
-
             btn.addEventListener('touchstart', activate);
             btn.addEventListener('touchend', deactivate);
-            
-            // Mouse testi için
             btn.addEventListener('mousedown', activate);
             btn.addEventListener('mouseup', deactivate);
             btn.addEventListener('mouseleave', deactivate);
         });
 
-        // --- OYUN MANTIĞI ---
-
+        // --- OYUN FONKSİYONLARI ---
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('restartBtn').addEventListener('click', startGame);
 
         function startGame() {
-            // Ses motorunu uyandır (tarayıcı politikaları için)
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             isPlaying = true;
             isPaused = false;
             pauseBtn.innerText = '❚❚';
             score = 0;
-            speed = 5;
+            speed = 4;
             frames = 0;
             obstacles = [];
             particles = [];
+            bullets = [];
             
-            player1.x = 200; player1.trail = [];
-            player2.x = 600; player2.trail = [];
+            player1.x = 200; player1.trail = []; player1.lastShot = 0;
+            player2.x = 600; player2.trail = []; player2.lastShot = 0;
 
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
@@ -493,32 +493,45 @@
             animate();
         }
 
+        function fireBullet(playerObj, side) {
+            const now = Date.now();
+            if (now - playerObj.lastShot > 300) {
+                playerObj.lastShot = now;
+                bullets.push({
+                    x: playerObj.x + playerSize / 2,
+                    y: playerObj.y,
+                    r: 4,
+                    color: side === 'left' ? '#00ffff' : '#ff00ff',
+                    speed: 10,
+                    side: side
+                });
+                playShootSound();
+            }
+        }
+
         function createParticles(x, y, color) {
-            for(let i=0; i<15; i++) {
+            for(let i=0; i<12; i++) {
                 particles.push({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    life: 1.0,
                     color: color
                 });
             }
         }
 
         function update() {
-            const moveSpeed = 8; // Yatay hareket daha hızlı olmalı çünkü sadece yatay kaçış var
+            const moveSpeed = 8;
 
-            // --- SOL OYUNCU (Z / C) ---
-            // Sınırlar: X [0, 395]
             if (keys.z && player1.x > 0) player1.x -= moveSpeed;
             if (keys.c && player1.x < (canvas.width/2) - playerSize - 5) player1.x += moveSpeed;
-
-            // --- SAĞ OYUNCU (OKLAR) ---
-            // Sınırlar: X [405, 800]
             if (keys.ArrowLeft && player2.x > (canvas.width/2) + 5) player2.x -= moveSpeed;
             if (keys.ArrowRight && player2.x < canvas.width - playerSize) player2.x += moveSpeed;
 
-            // Kuyruk
+            if (keys.x) fireBullet(player1, 'left');
+            if (keys.ArrowDown) fireBullet(player2, 'right');
+
             if (frames % 3 === 0) {
                 player1.trail.push({x: player1.x, y: player1.y});
                 player2.trail.push({x: player2.x, y: player2.y});
@@ -526,42 +539,77 @@
                 if (player2.trail.length > 8) player2.trail.shift();
             }
 
-            // --- ENGEL OLUŞTURMA ---
-            // Yukarıdan aşağı aktığı için spawnRate biraz daha hızlı olabilir
-            let spawnRate = Math.max(15, 50 - Math.floor(score/100));
-            
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.y -= b.speed;
+                if (b.y < 0) bullets.splice(i, 1);
+            }
+
+            // ENGEL OLUŞTURMA
+            let spawnRate = Math.max(20, 60 - Math.floor(score/100));
             if (frames % spawnRate === 0) {
                 const type = Math.random();
                 const obsSize = 40;
+                // %25 ihtimalle ZIRHLI (yok edilemez) engel gelir
+                const isArmored = Math.random() < 0.25; 
 
-                if (type < 0.6) { // Sol Taraf Engeli
+                if (type < 0.6) { // Sol
                     obstacles.push({
                         side: 'left',
                         x: Math.random() * ((canvas.width/2) - obsSize),
                         y: -50,
                         w: obsSize, h: obsSize,
-                        speed: speed + Math.random() * 2
+                        speed: speed + Math.random() * 1.5,
+                        armored: isArmored
                     });
                 }
-                if (type > 0.4) { // Sağ Taraf Engeli
+                if (type > 0.4) { // Sağ
                     obstacles.push({
                         side: 'right',
                         x: (canvas.width/2) + Math.random() * ((canvas.width/2) - obsSize),
                         y: -50,
                         w: obsSize, h: obsSize,
-                        speed: speed + Math.random() * 2
+                        speed: speed + Math.random() * 1.5,
+                        armored: isArmored
                     });
                 }
             }
 
-            // Hareket ve Çarpışma
+            // ENGEL MANTIĞI
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.y += obs.speed;
+                let obsHit = false;
 
+                // 1. Mermi Kontrolü
+                for (let j = bullets.length - 1; j >= 0; j--) {
+                    let b = bullets[j];
+                    if (b.side === obs.side) {
+                        if (b.x > obs.x && b.x < obs.x + obs.w && b.y > obs.y && b.y < obs.y + obs.h) {
+                            // VURULDU
+                            bullets.splice(j, 1); // Mermi her türlü yok olur
+                            
+                            if (obs.armored) {
+                                // Zırhlıysa yok olmaz, ses çıkar
+                                playArmorHitSound();
+                                // Ufak bir görsel efekt (kıvılcım)
+                                createParticles(b.x, b.y, '#fff');
+                            } else {
+                                // Normal engel yok olur
+                                createParticles(obs.x + obs.w/2, obs.y + obs.h/2, b.color);
+                                obstacles.splice(i, 1);
+                                obsHit = true;
+                                score += 20;
+                                scoreDisplay.innerText = score;
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (obsHit) continue;
+
+                // 2. Oyuncu Çarpışması
                 let p = obs.side === 'left' ? player1 : player2;
-                
-                // Çarpışma (AABB)
                 if (
                     p.x < obs.x + obs.w &&
                     p.x + playerSize > obs.x &&
@@ -573,15 +621,15 @@
                     return;
                 }
 
+                // 3. Ekrandan Çıkma (Kaçış Başarılı)
                 if (obs.y > canvas.height) {
                     obstacles.splice(i, 1);
-                    score += 10;
+                    score += 10; // Başarılı kaçış puanı
                     scoreDisplay.innerText = score;
-                    if (score % 300 === 0) speed += 1; // Hızlanma
+                    if (score % 300 === 0) speed += 0.5;
                 }
             }
 
-            // Parçacıklar
             for(let i = particles.length -1; i>=0; i--) {
                 let pt = particles[i];
                 pt.x += pt.vx; pt.y += pt.vy;
@@ -595,47 +643,68 @@
         function draw() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             ctx.shadowBlur = 15;
 
-            // Oyuncu 1 (Kare - Mavi)
+            // Oyuncular
             ctx.fillStyle = player1.color; ctx.shadowColor = player1.color;
             ctx.fillRect(player1.x, player1.y, playerSize, playerSize);
-            // Kuyruk
-            ctx.shadowBlur = 0; ctx.strokeStyle = player1.color; ctx.lineWidth = 2;
+            ctx.fillStyle = player2.color; ctx.shadowColor = player2.color;
+            ctx.beginPath(); ctx.arc(player2.x+15, player2.y+15, 15, 0, Math.PI*2); ctx.fill();
+
+            ctx.shadowBlur = 0; 
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = player1.color;
             ctx.beginPath();
-            player1.trail.forEach((t, i) => {
-                if(i===0) ctx.moveTo(t.x+15, t.y+15); else ctx.lineTo(t.x+15, t.y+15);
-            });
+            player1.trail.forEach((t, i) => { if(i===0) ctx.moveTo(t.x+15, t.y+15); else ctx.lineTo(t.x+15, t.y+15); });
+            ctx.stroke();
+            ctx.strokeStyle = player2.color;
+            ctx.beginPath();
+            player2.trail.forEach((t, i) => { if(i===0) ctx.moveTo(t.x+15, t.y+15); else ctx.lineTo(t.x+15, t.y+15); });
             ctx.stroke();
 
-            // Oyuncu 2 (Daire - Pembe)
-            ctx.shadowBlur = 15; ctx.fillStyle = player2.color; ctx.shadowColor = player2.color;
-            ctx.beginPath(); ctx.arc(player2.x+15, player2.y+15, 15, 0, Math.PI*2); ctx.fill();
-            // Kuyruk
-            ctx.shadowBlur = 0; ctx.strokeStyle = player2.color;
-            ctx.beginPath();
-            player2.trail.forEach((t, i) => {
-                if(i===0) ctx.moveTo(t.x+15, t.y+15); else ctx.lineTo(t.x+15, t.y+15);
+            // Mermiler
+            ctx.shadowBlur = 10;
+            bullets.forEach(b => {
+                ctx.fillStyle = b.color;
+                ctx.shadowColor = b.color;
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
             });
-            ctx.stroke();
 
             // Engeller
             obstacles.forEach(obs => {
-                ctx.shadowBlur = 8;
-                if (obs.side === 'left') {
-                    ctx.fillStyle = '#005555'; ctx.shadowColor = '#00ffff'; ctx.strokeStyle = '#00ffff';
+                if (obs.armored) {
+                    // ZIRHLI ÇİZİMİ (Gri/Metalik)
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#333'; // Koyu gri iç
+                    ctx.strokeStyle = '#aaa'; // Açık gri çerçeve
+                    ctx.lineWidth = 4;
+                    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                    ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+                    
+                    // Üzerine "X" işareti (Vurulmaz anlamında)
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x, obs.y); ctx.lineTo(obs.x+obs.w, obs.y+obs.h);
+                    ctx.moveTo(obs.x+obs.w, obs.y); ctx.lineTo(obs.x, obs.y+obs.h);
+                    ctx.stroke();
                 } else {
-                    ctx.fillStyle = '#550055'; ctx.shadowColor = '#ff00ff'; ctx.strokeStyle = '#ff00ff';
+                    // NORMAL ÇİZİM
+                    ctx.shadowBlur = 10;
+                    if (obs.side === 'left') {
+                        ctx.fillStyle = '#005555'; ctx.shadowColor = '#00ffff'; ctx.strokeStyle = '#00ffff';
+                    } else {
+                        ctx.fillStyle = '#550055'; ctx.shadowColor = '#ff00ff'; ctx.strokeStyle = '#ff00ff';
+                    }
+                    ctx.lineWidth = 3;
+                    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                    ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
                 }
-                ctx.lineWidth = 3;
-                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
             });
 
-            // Parçacıklar
+            ctx.shadowBlur = 0;
             particles.forEach(pt => {
                 ctx.globalAlpha = pt.life; ctx.fillStyle = pt.color;
-                ctx.fillRect(pt.x, pt.y, 5, 5);
+                ctx.fillRect(pt.x, pt.y, 4, 4);
             });
             ctx.globalAlpha = 1.0;
         }
@@ -654,10 +723,8 @@
             animationId = requestAnimationFrame(animate);
         }
 
-        // İlk Çizim
         ctx.fillStyle = 'black';
         ctx.fillRect(0,0,canvas.width, canvas.height);
-
     </script>
 </body>
 </html>
