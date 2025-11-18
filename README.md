@@ -11,12 +11,3 @@ Oyun, HTML5, CSS3 ve saf JavaScript kullanılarak tek bir dosyada geliştirilmi�
  * Geniş Kontrol Uyumluluğu: Klavye (Z/C/X ve Oklar), Mobil Ekran Tuşları ve Gamepad (Sol Oyuncu için) desteği.
  * ASMR Ses Efektleri: Klavye ve ateşleme aksiyonları, tatmin edici ve tok "ASMR/Thocky" ses efektleri ile desteklenmiştir.
  * Çevrimdışı Uyumluluk: Tek HTML dosyası yapısı sayesinde kolayca APK'ya sarmalanabilir (Cordova/CodeAssist WebView).
-🎮 Oynanış ve Kontroller
-Oyun, seçilen moda göre kontrol setlerini otomatik olarak ayarlar.
-| Eylem | 1. Oyuncu (Sol El) | 2. Oyuncu (Sağ El) |
-|---|---|---|
-| Sola Hareket | Z | Sol Ok |
-| Sağa Hareket | C | Sağ Ok |
-| Ateş Etme | X | Aşağı Ok |
-| Durdur/Başlat | S veya Yukarı Ok |  |
-| Menü Seç/Onay | Enter |  |
