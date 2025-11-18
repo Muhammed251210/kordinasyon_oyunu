@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nöro Senkron - Yatay Mod</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 100vh;
+            max-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+        }
+
+        #uiLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #scoreDisplay {
+            font-size: 40px;
+            font-weight: 900;
+            margin-top: 20px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* --- YENİ MOBİL KONTROLLER (Sadece Yatay) --- */
+        #mobileControls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            box-sizing: border-box;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: background 0.1s;
+            touch-action: none;
+        }
+
+        .btn:active, .btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+
+        /* Renk Kodları */
+        .left-group .btn { border-color: #00ffff; color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); }
+        .right-group .btn { border-color: #ff00ff; color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.1); }
+
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            backdrop-filter: blur(5px);
+            z-index: 40;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .key-hint {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+            color: #ccc;
+        }
+        .key-box {
+            border: 1px solid #555;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .key-box b { display: block; font-size: 1.5em; margin-bottom: 5px;}
+
+        button.main-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .hidden { display: none !important; }
+        
+        #divider {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.2);
+            transform: translateX(-50%);
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="divider"></div>
+        
+        <div id="uiLayer">
+            <div id="scoreDisplay">0</div>
+        </div>
+
+        <!-- Mobil Kontroller (Yatay Sadece) -->
+        <div id="mobileControls">
+            <!-- Sol El (Z / C) -->
+            <div class="control-group left-group">
+                <div class="btn" data-key="z">◀</div> <!-- Sol -->
+                <div class="btn" data-key="c">▶</div> <!-- Sağ -->
+            </div>
+
+            <!-- Sağ El (Oklar) -->
+            <div class="control-group right-group">
+                <div class="btn" data-key="ArrowLeft">◀</div>
+                <div class="btn" data-key="ArrowRight">▶</div>
+            </div>
+        </div>
+
+        <!-- Başlangıç Ekranı -->
+        <div id="startScreen">
+            <h1>Nöro Senkron</h1>
+            <div class="key-hint">
+                <div class="key-box" style="border-color: #00ffff; color: #00ffff;">
+                    <b>Z & C</b>
+                    Sol Taraf
+                </div>
+                <div class="key-box" style="border-color: #ff00ff; color: #ff00ff;">
+                    <b>← & →</b>
+                    Sağ Taraf
+                </div>
+            </div>
+            <p style="color:#888; font-size:0.9em;">Mobilde ekrandaki butonları kullan</p>
+            <button class="main-btn" id="startBtn">BAŞLA</button>
+        </div>
+
+        <!-- Oyun Sonu Ekranı -->
+        <div id="gameOverScreen" class="hidden">
+            <h1 style="font-size: 2rem; -webkit-text-fill-color: white;">OYUN BİTTİ</h1>
+            <p>Skor: <span id="finalScore" style="color: yellow;">0</span></p>
+            <button class="main-btn" id="restartBtn">TEKRAR</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const finalScoreEl = document.getElementById('finalScore');
+        
+        // Oyun Durumu
+        let isPlaying = false;
+        let score = 0;
+        let speed = 5;
+        let animationId;
+        let frames = 0;
+
+        // Tuş Durumları
+        const keys = {
+            z: false, c: false, // Sol Taraf
+            ArrowLeft: false, ArrowRight: false // Sağ Taraf
+        };
+
+        // Oyuncular (Y pozisyonu sabitlendi)
+        const playerSize = 30;
+        const fixedY = 500; // Oyuncuların sabit yüksekliği
+        
+        const player1 = { x: 200, y: fixedY, color: '#00ffff', trail: [] };
+        const player2 = { x: 600, y: fixedY, color: '#ff00ff', trail: [] };
+
+        let obstacles = [];
+        let particles = [];
+
+        // --- KONTROL TANIMLAMALARI ---
+
+        // Klavye
+        window.addEventListener('keydown', (e) => {
+            // Z veya z fark etmez
+            const k = e.key.toLowerCase() === 'z' ? 'z' : (e.key.toLowerCase() === 'c' ? 'c' : e.key);
+            if(keys.hasOwnProperty(k)) keys[k] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            const k = e.key.toLowerCase() === 'z' ? 'z' : (e.key.toLowerCase() === 'c' ? 'c' : e.key);
+            if(keys.hasOwnProperty(k)) keys[k] = false;
+        });
+
+        // Mobil Butonlar
+        const touchButtons = document.querySelectorAll('.btn');
+        touchButtons.forEach(btn => {
+            const key = btn.dataset.key;
+            
+            const activate = (e) => {
+                e.preventDefault();
+                keys[key] = true;
+                btn.classList.add('active');
+            };
+            
+            const deactivate = (e) => {
+                e.preventDefault();
+                keys[key] = false;
+                btn.classList.remove('active');
+            };
+
+            btn.addEventListener('touchstart', activate);
+            btn.addEventListener('touchend', deactivate);
+            
+            // Mouse testi için
+            btn.addEventListener('mousedown', activate);
+            btn.addEventListener('mouseup', deactivate);
+            btn.addEventListener('mouseleave', deactivate);
+        });
+
+        // --- OYUN MANTIĞI ---
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+        function startGame() {
+            isPlaying = true;
+            score = 0;
+            speed = 5;
+            frames = 0;
+            obstacles = [];
+            particles = [];
+            
+            player1.x = 200; player1.trail = [];
+            player2.x = 600; player2.trail = [];
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            scoreDisplay.innerText = "0";
+            
+            animate();
+        }
+
+        function createParticles(x, y, color) {
+            for(let i=0; i<15; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    color: color
+                });
+            }
+        }
+
+        function update() {
+            const moveSpeed = 8; // Yatay hareket daha hızlı olmalı çünkü sadece yatay kaçış var
+
+            // --- SOL OYUNCU (Z / C) ---
+            // Sınırlar: X [0, 395]
+            if (keys.z && player1.x > 0) player1.x -= moveSpeed;
+            if (keys.c && player1.x < (canvas.width/2) - playerSize - 5) player1.x += moveSpeed;
+
+            // --- SAĞ OYUNCU (OKLAR) ---
+            // Sınırlar: X [405, 800]
+            if (keys.ArrowLeft && player2.x > (canvas.width/2) + 5) player2.x -= moveSpeed;
+            if (keys.ArrowRight && player2.x < canvas.width - playerSize) player2.x += moveSpeed;
+
+            // Kuyruk
+            if (frames % 3 === 0) {
+                player1.trail.push({x: player1.x, y: player1.y});
+                player2.trail.push({x: player2.x, y: player2.y});
+                if (player1.trail.length > 8) player1.trail.shift();
+                if (player2.trail.length > 8) player2.trail.shift();
+            }
+
+            // --- ENGEL OLUŞTURMA ---
+            // Yukarıdan aşağı aktığı için spawnRate biraz daha hızlı olabilir
+            let spawnRate = Math.max(15, 50 - Math.floor(score/100));
+            
+            if (frames % spawnRate === 0) {
+                const type = Math.random();
+                const obsSize = 40;
+
+                if (type < 0.6) { // Sol Taraf Engeli
+                    obstacles.push({
+                        side: 'left',
+                        x: Math.random() * ((canvas.width/2) - obsSize),
+                        y: -50,
+                        w: obsSize, h: obsSize,
+                        speed: speed + Math.random() * 2
+                    });
+                }
+                if (type > 0.4) { // Sağ Taraf Engeli
+                    obstacles.push({
+                        side: 'right',
+                        x: (canvas.width/2) + Math.random() * ((canvas.width/2) - obsSize),
+                        y: -50,
+                        w: obsSize, h: obsSize,
+                        speed: speed + Math.random() * 2
+                    });
+                }
+            }
+
+            // Hareket ve Çarpışma
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.y += obs.speed;
+
+                let p = obs.side === 'left' ? player1 : player2;
+                
+                // Çarpışma (AABB)
+                if (
+                    p.x < obs.x + obs.w &&
+                    p.x + playerSize > obs.x &&
+                    p.y < obs.y + obs.h &&
+                    p.y + playerSize > obs.y
+                ) {
+                    createParticles(p.x + playerSize/2, p.y + playerSize/2, p.color);
+                    gameOver();
+                    return;
+                }
+
+                if (obs.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    scoreDisplay.innerText = score;
+                    if (score % 300 === 0) speed += 1; // Hızlanma
+                }
+            }
+
+            // Parçacıklar
+            for(let i = particles.length -1; i>=0; i--) {
+                let pt = particles[i];
+                pt.x += pt.vx; pt.y += pt.vy;
+                pt.life -= 0.05;
+                if(pt.life <= 0) particles.splice(i, 1);
+            }
+
+            frames++;
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.shadowBlur = 15;
+
+            // Oyuncu 1 (Kare - Mavi)
+            ctx.fillStyle = player1.color; ctx.shadowColor = player1.color;
+            ctx.fillRect(player1.x, player1.y, playerSize, playerSize);
+            // Kuyruk
+            ctx.shadowBlur = 0; ctx.strokeStyle = player1.color; ctx.lineWidth = 2;
+            ctx.beginPath();
+            player1.trail.forEach((t, i) => {
+                if(i===0) ctx.moveTo(t.x+15, t.y+15); else ctx.lineTo(t.x+15, t.y+15);
+            });
+            ctx.stroke();
+
+            // Oyuncu 2 (Daire - Pembe)
+            ctx.shadowBlur = 15; ctx.fillStyle = player2.color; ctx.shadowColor = player2.color;
+            ctx.beginPath(); ctx.arc(player2.x+15, player2.y+15, 15, 0, Math.PI*2); ctx.fill();
+            // Kuyruk
+            ctx.shadowBlur = 0; ctx.strokeStyle = player2.color;
+            ctx.beginPath();
+            player2.trail.forEach((t, i) => {
+                if(i===0) ctx.moveTo(t.x+15, t.y+15); else ctx.lineTo(t.x+15, t.y+15);
+            });
+            ctx.stroke();
+
+            // Engeller
+            obstacles.forEach(obs => {
+                ctx.shadowBlur = 8;
+                if (obs.side === 'left') {
+                    ctx.fillStyle = '#005555'; ctx.shadowColor = '#00ffff'; ctx.strokeStyle = '#00ffff';
+                } else {
+                    ctx.fillStyle = '#550055'; ctx.shadowColor = '#ff00ff'; ctx.strokeStyle = '#ff00ff';
+                }
+                ctx.lineWidth = 3;
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+            });
+
+            // Parçacıklar
+            particles.forEach(pt => {
+                ctx.globalAlpha = pt.life; ctx.fillStyle = pt.color;
+                ctx.fillRect(pt.x, pt.y, 5, 5);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            finalScoreEl.innerText = score;
+            gameOverScreen.classList.remove('hidden');
+            cancelAnimationFrame(animationId);
+        }
+
+        function animate() {
+            if (!isPlaying) return;
+            update();
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // İlk Çizim
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    </script>
+</body>
+</html>
