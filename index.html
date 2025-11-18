@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nöro Senkron - Gamepad & Fullscreen</title>
+    <title>Nöro Senkron - TV Modu</title>
     <style>
         body {
             margin: 0;
@@ -21,7 +21,7 @@
             height: 100vh;
         }
 
-        /* Oyun Konteyneri - Artık Tam Ekran Ölçekleniyor */
+        /* Oyun Konteyneri */
         #gameContainer {
             position: relative;
             width: 100%;
@@ -73,7 +73,6 @@
             backdrop-filter: blur(4px);
         }
         
-        /* Daha Büyük Tam Ekran Butonu */
         #fullscreenBtn { right: 20px; width: 60px; height: 60px; font-size: 30px; }
         #pauseBtn { left: 20px; width: 50px; height: 50px; font-size: 24px; }
         
@@ -116,11 +115,29 @@
             margin: 15px;
             transition: all 0.2s;
             min-width: 300px;
+            position: relative;
         }
         .menu-btn:hover {
             background: #fff; color: #000;
             transform: scale(1.05);
             box-shadow: 0 0 30px rgba(255,255,255,0.6);
+        }
+        
+        .key-badge {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            color: #fff;
+            border: 1px solid #666;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
         }
 
         /* RENK SEÇİMİ */
@@ -140,13 +157,20 @@
             transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
             box-sizing: border-box;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.5);
+            text-shadow: 0 0 2px rgba(255,255,255,0.8);
         }
-        /* Seçili Renk Vurgusu (Navigasyon) */
         .color-btn.focused {
             transform: scale(1.3);
             border-color: #fff;
             box-shadow: 0 0 30px rgba(255,255,255,0.9);
             z-index: 2;
+            color: #000;
         }
         .color-taken { 
             opacity: 0.2; 
@@ -217,7 +241,6 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="divider"></div>
         
-        <!-- Gamepad Durumu -->
         <div id="gamepadStatus">🎮 OYUN KOLU BAĞLANDI (SOL)</div>
 
         <button id="fullscreenBtn" title="Tam Ekran">⛶</button>
@@ -245,15 +268,23 @@
         <div id="modeScreen" class="screen">
             <h1>Nöro Senkron</h1>
             <p style="color:#ccc; margin-bottom:30px;">Oyun Modunu Seç</p>
-            <button class="menu-btn" onclick="selectMode(1)">1 OYUNCU<br><span style="font-size:0.6em; opacity:0.8;">(Klavye Kısayolu: 1)</span></button>
-            <button class="menu-btn" onclick="selectMode(2)">2 OYUNCU<br><span style="font-size:0.6em; opacity:0.8;">(Klavye Kısayolu: 2)</span></button>
+            <button class="menu-btn" onclick="selectMode(1)">
+                <div class="key-badge">1</div>
+                1 OYUNCU<br><span style="font-size:0.6em; opacity:0.8;">Tek Ekran</span>
+            </button>
+            <button class="menu-btn" onclick="selectMode(2)">
+                <div class="key-badge">2</div>
+                2 OYUNCU<br><span style="font-size:0.6em; opacity:0.8;">Bölünmüş Ekran</span>
+            </button>
         </div>
 
         <!-- 2. EKRAN: RENK SEÇİMİ -->
         <div id="colorScreen" class="screen hidden">
             <h1 id="colorTitle">Oyuncu Renk Seç</h1>
             <div class="color-grid" id="colorGrid"></div>
-            <div style="margin-top: 40px; color: #ccc; display: flex; gap: 20px; align-items: center;">
+            <div style="margin-top: 40px; color: #ccc; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center;">
+                <span>Tuşlar: 1-8</span>
+                <span style="opacity:0.5">|</span>
                 <span>◄ ► Seç</span>
                 <span style="border:1px solid #fff; padding: 5px 15px; border-radius: 5px;">ENTER</span>
                 <span>Onayla</span>
@@ -268,16 +299,17 @@
                 <div class="legend-item"><div class="legend-box" style="border-color: #888; background: #333;"></div><span>KAÇ (Zırhlı)</span></div>
             </div>
             
-            <div style="display:flex; width:80%; max-width:800px; justify-content:space-around; margin-bottom:30px;">
-                <div style="text-align:center; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 40px;">
+            <div style="display:flex; width:90%; max-width:900px; justify-content:space-around; margin-bottom:30px; gap:20px;">
+                <div style="text-align:center; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 20px; flex:1;">
                     <h2 style="color:#ccc; margin-bottom:10px;">SOL (P1)</h2>
-                    <p style="font-size:1.2em;">Z / C<br><span style="font-size:0.8em; color:#888;">(veya Gamepad Sol Çubuk)</span></p>
-                    <p style="font-size:1.2em; color:#ff5555; margin-top:5px;">X<br><span style="font-size:0.8em; color:#888;">(veya Gamepad Tuşları)</span></p>
+                    <p style="font-size:1.1em;">Z / C <span style="font-size:0.8em; color:#888;">(Yön)</span></p>
+                    <p style="font-size:1.1em; color:#ff5555;">X <span style="font-size:0.8em; color:#888;">(Ateş)</span></p>
+                    <p style="font-size:0.8em; color:#00ff00; margin-top:10px;">🎮 Gamepad Destekli</p>
                 </div>
-                <div style="text-align:center;">
+                <div style="text-align:center; flex:1;">
                     <h2 style="color:#ccc; margin-bottom:10px;">SAĞ (P2)</h2>
-                    <p style="font-size:1.2em;">YÖN TUŞLARI</p>
-                    <p style="font-size:1.2em; color:#ff5555; margin-top:5px;">AŞAĞI OK</p>
+                    <p style="font-size:1.1em;">OK TUŞLARI</p>
+                    <p style="font-size:1.1em; color:#ff5555;">AŞAĞI OK</p>
                 </div>
             </div>
             
@@ -296,6 +328,7 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('gameContainer');
         
         const modeScreen = document.getElementById('modeScreen');
         const colorScreen = document.getElementById('colorScreen');
@@ -316,12 +349,11 @@
         let animationId;
         let frames = 0;
         
-        // Renk Seçimi Değişkenleri
+        // Renk Seçimi
         let selectedColorIndex = 0;
         const colors = ['#00ffff', '#ff00ff', '#00ff00', '#ffff00', '#ff3300', '#aa00ff', '#ffffff', '#0099ff'];
 
         const playerSize = 30;
-        // fixedY sabiti kaldırıldı, dinamik hesaplanacak
         
         const player1 = { x: 0, y: 0, color: '#00ffff', trail: [], lastShot: 0 };
         const player2 = { x: 0, y: 0, color: '#ff00ff', trail: [], lastShot: 0 };
@@ -403,6 +435,7 @@
                 const btn = document.createElement('div');
                 btn.className = 'color-btn';
                 btn.style.backgroundColor = c;
+                btn.innerText = index + 1; // Numarayı göster
                 
                 const isTaken = (gameMode === 2 && playerNum === 2 && player1.color === c);
                 if (isTaken) {
@@ -518,7 +551,6 @@
             score = 0; speed = 4; frames = 0;
             obstacles = []; particles = []; bullets = [];
             
-            // Yüksekliği güncelle (Gemilerin göründüğünden emin olmak için)
             resizeCanvas();
 
             if (gameMode === 1) {
@@ -800,19 +832,41 @@
         }
 
         pauseBtn.addEventListener('click', togglePause);
+        
+        // Tam Ekran (Container'ı tam ekran yapar)
         document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err=>{});
-            else document.exitFullscreen();
+            if (!document.fullscreenElement) {
+                gameContainer.requestFullscreen().catch(err => {
+                    console.error(`Tam ekran hatası: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
         });
 
         window.addEventListener('keydown', (e) => {
+            // MOD SEÇİMİ (1, 2)
             if (!modeScreen.classList.contains('hidden')) {
                 if (e.key === '1') selectMode(1);
                 if (e.key === '2') selectMode(2);
                 return;
             }
 
+            // RENK SEÇİMİ (Oklar, Enter ve Sayılar)
             if (!colorScreen.classList.contains('hidden')) {
+                // Sayı tuşları (1-8)
+                if (e.key >= '1' && e.key <= '8') {
+                    const idx = parseInt(e.key) - 1;
+                    if (idx < colors.length) {
+                        const c = colors[idx];
+                        if (gameMode === 2 && currentPlayerSelecting === 2 && player1.color === c) return;
+                        selectedColorIndex = idx;
+                        updateColorGridVisuals();
+                        confirmColorSelection();
+                    }
+                    return;
+                }
+
                 if (e.key === 'ArrowLeft') {
                     selectedColorIndex = (selectedColorIndex - 1 + colors.length) % colors.length;
                     updateColorGridVisuals();
@@ -827,18 +881,27 @@
                 return;
             }
 
+            // BAŞLAT / RESTART
             if (e.key === 'Enter') { 
                 if(!startScreen.classList.contains('hidden')) startGame();
                 else if(!isPlaying && !gameOverScreen.classList.contains('hidden')) resetToMenu();
                 return; 
             }
 
+            // DURAKLAT
             if ((e.key.toLowerCase() === 's' || e.key === 'ArrowUp') && (isPlaying || isPaused)) { togglePause(); return; }
 
+            // OYUN KONTROLLERİ
+            // Numpad tuşlarını yön olarak kullanmayı ENGELLEDİM (sadece sayı göndersin diye)
             const k = e.key.toLowerCase();
             let keyMap = null;
-            if (k === 'z') keyMap = 'z'; else if (k === 'c') keyMap = 'c'; else if (k === 'x') keyMap = 'x';
-            else if (k === 'arrowleft') keyMap = 'ArrowLeft'; else if (k === 'arrowright') keyMap = 'ArrowRight'; else if (k === 'arrowdown') keyMap = 'ArrowDown';
+            
+            if (k === 'z') keyMap = 'z'; 
+            else if (k === 'c') keyMap = 'c'; 
+            else if (k === 'x') keyMap = 'x';
+            else if (k === 'arrowleft') keyMap = 'ArrowLeft'; 
+            else if (k === 'arrowright') keyMap = 'ArrowRight'; 
+            else if (k === 'arrowdown') keyMap = 'ArrowDown';
 
             if(keyMap) {
                 if (!keys[keyMap] && isPlaying && !isPaused) playSound('click');
@@ -848,8 +911,13 @@
 
         window.addEventListener('keyup', (e) => {
             const k = e.key.toLowerCase();
-            if (k === 'z') keys.z = false; else if (k === 'c') keys.c = false; else if (k === 'x') keys.x = false;
-            else if (k === 'arrowleft') keys.ArrowLeft = false; else if (k === 'arrowright') keys.ArrowRight = false; else if (k === 'arrowdown') keys.ArrowDown = false;
+
+            if (k === 'z') keys.z = false; 
+            else if (k === 'c') keys.c = false; 
+            else if (k === 'x') keys.x = false;
+            else if (k === 'arrowleft') keys.ArrowLeft = false; 
+            else if (k === 'arrowright') keys.ArrowRight = false; 
+            else if (k === 'arrowdown') keys.ArrowDown = false;
         });
         
         const touchButtons = document.querySelectorAll('.btn');
@@ -865,12 +933,12 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             
-            // Gemilerin Y eksenindeki konumunu ekrana göre dinamik güncelle
             const targetY = canvas.height - 100;
             player1.y = targetY;
             player2.y = targetY;
         }
         window.addEventListener('resize', resizeCanvas);
+        document.addEventListener('fullscreenchange', resizeCanvas);
         resizeCanvas(); 
 
         ctx.fillStyle = 'black';
